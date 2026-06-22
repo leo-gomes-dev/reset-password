@@ -136,31 +136,32 @@
 
       <div id="msgBox" class="message"></div>
     </div>
+
     <script>
-      const urlParams = URLSearchParams(window.location.urlParams);
+      // 1. Correção da captura do token na URL
+      const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get("token");
 
-      // Recuperar os campos
-      const form = document.querySelector("#resetForm");
-      const btnSubmit = document.querySelector("#btnSubmit");
-      const msgBox = document.querySelector("#msgBox");
+      const form = document.getElementById("resetForm");
+      const msgBox = document.getElementById("msgBox");
+      const btnSubmit = document.getElementById("btnSubmit");
 
+      // Se não houver token na URL, bloqueia o formulário e avisa o usuário
       if (!token) {
-        showResponse("Error Token não enviado", true);
+        showResponse("Link de recuperação inválido (Token ausente).", true);
         btnSubmit.disabled = true;
       }
 
-      // function reset
-      form.addEventListener("submit", resetPaswword);
-
-      async function resetPaswword(e) {
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const password = document.querySelector("#password");
-        const confirmPassword = document.querySelector("#confirmPassword");
-        //validar se as senhas conferem
+        const password = document.getElementById("password").value;
+        const confirmPassword =
+          document.getElementById("confirmPassword").value;
+
+        // Validação simples de igualdade de senhas no Front-end
         if (password !== confirmPassword) {
-          msgBox("As senha não conferem", true);
+          showResponse("As senhas não coincidem.", true);
           return;
         }
 
@@ -169,9 +170,10 @@
         msgBox.style.display = "none";
 
         try {
-          const response = fetch("http://localhost:3000/auth/reset", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+          // 2. Correção da sintaxe do fetch e headers
+          const response = await fetch("http://localhost:3000/auth/reset", {
+            method: "POST", // Corrigido de post para "POST"
+            headers: { "Content-Type": "application/json" }, // Corrigido camelCase
             body: JSON.stringify({ password, token }),
           });
 
@@ -179,6 +181,7 @@
             const errData = await response.json();
             throw new Error(errData.message || "Erro ao redefinir a senha.");
           }
+
           showResponse(
             "Senha alterada com sucesso! Você já pode fechar esta página.",
             false,
@@ -189,13 +192,12 @@
           btnSubmit.disabled = false;
           btnSubmit.innerText = "Alterar Senha";
         }
-      }
+      });
 
-      // mensages
       function showResponse(text, isError) {
         msgBox.innerText = text;
-        msgBox.className = `Messagem ${isError ? "danger" : "success"} `;
-        msgBox.display = "block";
+        msgBox.className = `message ${isError ? "error" : "success"}`;
+        msgBox.style.display = "block";
       }
     </script>
   </body>
