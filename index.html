@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redefinir Senha</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      }
+      body {
+        background-color: #f3f4f6;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+      .card {
+        background: #ffffff;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        width: 100%;
+        max-width: 420px;
+      }
+      h2 {
+        color: #111827;
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-align: center;
+      }
+      p.subtitle {
+        color: #6b7280;
+        font-size: 14px;
+        text-align: center;
+        margin-bottom: 32px;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        color: #374151;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 6px;
+      }
+      input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 15px;
+        transition: all 0.2s;
+        outline: none;
+      }
+      input:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+      }
+      button {
+        width: 100%;
+        background-color: #4f46e5;
+        color: #ffffff;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 10px;
+      }
+      button:hover {
+        background-color: #4338ca;
+      }
+      button:disabled {
+        background-color: #a5b4fc;
+        cursor: not-allowed;
+      }
+      .message {
+        margin-top: 20px;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        text-align: center;
+        display: none;
+      }
+      .success {
+        background-color: #ecfdf5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+      }
+      .error {
+        background-color: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fca5a5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2>Nova Senha</h2>
+      <p class="subtitle">Digite e confirme sua nova senha de acesso.</p>
+
+      <form id="resetForm">
+        <div class="form-group">
+          <label for="password">Nova Senha</label>
+          <input
+            type="password"
+            id="password"
+            required
+            placeholder="••••••••"
+            minlength="6"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirmar Nova Senha</label>
+          <input
+            type="password"
+            id="confirmPassword"
+            required
+            placeholder="••••••••"
+            minlength="6"
+          />
+        </div>
+
+        <button type="submit" id="btnSubmit">Alterar Senha</button>
+      </form>
+
+      <div id="msgBox" class="message"></div>
+    </div>
+    <script>
+      const urlParams = URLSearchParams(window.location.urlParams);
+      const token = urlParams.get("token");
+
+      // Recuperar os campos
+      const form = document.querySelector("#resetForm");
+      const btnSubmit = document.querySelector("#btnSubmit");
+      const msgBox = document.querySelector("#msgBox");
+
+      if (!token) {
+        showResponse("Error Token não enviado", true);
+        btnSubmit.disabled = true;
+      }
+
+      // function reset
+      form.addEventListener("submit", resetPaswword);
+
+      async function resetPaswword(e) {
+        e.preventDefault();
+
+        const password = document.querySelector("#password");
+        const confirmPassword = document.querySelector("#confirmPassword");
+        //validar se as senhas conferem
+        if (password !== confirmPassword) {
+          msgBox("As senha não conferem", true);
+          return;
+        }
+
+        btnSubmit.disabled = true;
+        btnSubmit.innerText = "Salvando...";
+        msgBox.style.display = "none";
+
+        try {
+          const response = fetch("http://localhost:3000/auth/reset", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password, token }),
+          });
+
+          if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.message || "Erro ao redefinir a senha.");
+          }
+          showResponse(
+            "Senha alterada com sucesso! Você já pode fechar esta página.",
+            false,
+          );
+          form.reset();
+        } catch (error) {
+          showResponse(error.message, true);
+          btnSubmit.disabled = false;
+          btnSubmit.innerText = "Alterar Senha";
+        }
+      }
+
+      // mensages
+      function showResponse(text, isError) {
+        msgBox.innerText = text;
+        msgBox.className = `Messagem ${isError ? "danger" : "success"} `;
+        msgBox.display = "block";
+      }
+    </script>
+  </body>
+</html>
