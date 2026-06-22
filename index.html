@@ -26,6 +26,7 @@
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         width: 100%;
         max-width: 420px;
+        transition: all 0.3s ease;
       }
       h2 {
         color: #111827;
@@ -62,6 +63,11 @@
       input:focus {
         border-color: #4f46e5;
         box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+      }
+      input:disabled {
+        background-color: #f3f4f6;
+        color: #9ca3af;
+        cursor: not-allowed;
       }
       button {
         width: 100%;
@@ -101,10 +107,30 @@
         color: #991b1b;
         border: 1px solid #fca5a5;
       }
+
+      /* Estilos para a tela de agradecimento */
+      .success-icon {
+        display: block;
+        font-size: 48px;
+        text-align: center;
+        margin-bottom: 16px;
+        color: #10b981;
+      }
+      .btn-app {
+        display: inline-block;
+        text-align: center;
+        text-decoration: none;
+        background-color: #10b981;
+        margin-top: 24px;
+      }
+      .btn-app:hover {
+        background-color: #059669;
+      }
     </style>
   </head>
   <body>
-    <div class="card">
+    <!-- Identificador adicionado ao container para permitir a troca de conteúdo -->
+    <div class="card" id="cardContainer">
       <h2>Nova Senha</h2>
       <p class="subtitle">Digite e confirme sua nova senha de acesso.</p>
 
@@ -138,15 +164,16 @@
     </div>
 
     <script>
-      // 1. Correção da captura do token na URL
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get("token");
 
+      const cardContainer = document.getElementById("cardContainer");
       const form = document.getElementById("resetForm");
       const msgBox = document.getElementById("msgBox");
       const btnSubmit = document.getElementById("btnSubmit");
+      const passwordInput = document.getElementById("password");
+      const confirmPasswordInput = document.getElementById("confirmPassword");
 
-      // Se não houver token na URL, bloqueia o formulário e avisa o usuário
       if (!token) {
         showResponse("Link de recuperação inválido (Token ausente).", true);
         btnSubmit.disabled = true;
@@ -155,25 +182,25 @@
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const password = document.getElementById("password").value;
-        const confirmPassword =
-          document.getElementById("confirmPassword").value;
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
 
-        // Validação simples de igualdade de senhas no Front-end
         if (password !== confirmPassword) {
           showResponse("As senhas não coincidem.", true);
           return;
         }
 
+        // Bloqueia interações durante o salvamento
         btnSubmit.disabled = true;
         btnSubmit.innerText = "Salvando...";
+        passwordInput.disabled = true;
+        confirmPasswordInput.disabled = true;
         msgBox.style.display = "none";
 
         try {
-          // 2. Correção da sintaxe do fetch e headers
           const response = await fetch("http://localhost:3000/auth/reset", {
-            method: "POST", // Corrigido de post para "POST"
-            headers: { "Content-Type": "application/json" }, // Corrigido camelCase
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ password, token }),
           });
 
@@ -182,15 +209,22 @@
             throw new Error(errData.message || "Erro ao redefinir a senha.");
           }
 
-          showResponse(
-            "Senha alterada com sucesso! Você já pode fechar esta página.",
-            false,
-          );
-          form.reset();
+          // Aguarda um instante para simular o processo e limpa o HTML do card
+          setTimeout(() => {
+            cardContainer.innerHTML = `
+              <span class="success-icon">✓</span>
+              <h2>Tudo pronto!</h2>
+              <p class="subtitle" style="margin-bottom: 20px;">Sua senha foi redefinida com sucesso. Obrigado por validar sua conta!</p>
+              <div class="message success" style="display: block;">A alteração foi salva no banco de dados.</div>
+              <a href="https://seuapp.com" class="btn-app" style="width: 100%; padding: 12px; border-radius: 8px; color: white; font-weight: 600; text-align: center; display: block; box-sizing: border-box;">Voltar para o Aplicativo</a>
+            `;
+          }, 800);
         } catch (error) {
           showResponse(error.message, true);
           btnSubmit.disabled = false;
           btnSubmit.innerText = "Alterar Senha";
+          passwordInput.disabled = false;
+          confirmPasswordInput.disabled = false;
         }
       });
 
