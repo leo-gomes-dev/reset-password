@@ -1,7 +1,6 @@
 # 🔐 Password Reset Interface
 
-![GitHub Pages](https://shields.io)
-![Tech](https://shields.io)
+![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-222222?style=for-the-badge&logo=githubpages&logoColor=white) ![Tecnologias](https://img.shields.io/badge/Tecnologias-Stack-blue?style=for-the-badge)
 
 Uma interface de usuário limpa, segura e responsiva para fluxos de redefinição de senha. O projeto foi estruturado para ser facilmente acoplado a qualquer API de autenticação backend (Node.js, Python, PHP, etc.), exigindo apenas a alteração do endpoint de destino.
 
